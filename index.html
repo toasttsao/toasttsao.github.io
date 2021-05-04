@@ -69,12 +69,12 @@
     >
 
       <template #cell(flag)="row">
-        <span @click="info(row.item, row.index, $event.target)"  style="cursor: pointer;" >
         <img :src=row.value  style="width:48px;height:48px;">
-       </span>
       </template>
       <template #cell(name)="row">
+        <span @click="info(row.item, row.index, $event.target)"  style="cursor: pointer;" >
         {{ row.value}}
+       </span>
       </template>
       <template #cell(alpha2Code)="row">
         {{ row.value}}
