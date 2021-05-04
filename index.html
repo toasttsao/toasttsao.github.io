@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+
+  <title>demo</title>
+  <link
+          type="text/css"
+          rel="stylesheet"
+          href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css"
+  />
+  <link
+          type="text/css"
+          rel="stylesheet"
+          href="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.css"
+  />
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es2015%2CIntersectionObserver"></script>
+  <script src="https://unpkg.com/vue@latest/dist/vue.js"></script>
+  <script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.js"></script>
+</head>
+<body>
+<div id="app">
+  <b-container fluid>
+    <!-- User Interface controls -->
+    <b-row>
+
+      <b-col lg="6" class="my-1">
+        <b-form-group
+                label="依國家名稱查詢"
+                label-for="filter-input"
+                label-cols-sm="3"
+                label-align-sm="right"
+                label-size="sm"
+                class="mb-0"
+        >
+          <b-input-group size="sm">
+            <b-form-input
+                    id="filter-input"
+                    v-model="filter"
+                    type="search"
+                    placeholder="Type to Search"
+            ></b-form-input>
+
+            <b-input-group-append>
+              <b-button :disabled="!filter" @click="filter = ''">Clear</b-button>
+            </b-input-group-append>
+          </b-input-group>
+        </b-form-group>
+      </b-col>
+    </b-row>
+
+    <!-- Main table element -->
+    <b-table
+            :items="items"
+            :fields="fields"
+            :current-page="currentPage"
+            :per-page="perPage"
+            :filter="filter"
+            :filter-included-fields="filterOn"
+            :sort-by.sync="sortBy"
+            :sort-desc.sync="sortDesc"
+            :sort-direction="sortDirection"
+            stacked="md"
+            show-empty
+            small
+            @filtered="onFiltered"
+    >
+
+      <template #cell(flag)="row">
+        <span @click="info(row.item, row.index, $event.target)"  style="cursor: pointer;" >
+        <img :src=row.value  style="width:48px;height:48px;">
+       </span>
+      </template>
+      <template #cell(name)="row">
+        {{ row.value}}
+      </template>
+      <template #cell(alpha2Code)="row">
+        {{ row.value}}
+      </template>
+      <template #cell(alpha3Code)="row">
+        {{ row.value}}
+      </template>
+      <template #cell(nativeName)="row">
+        {{ row.value}}
+      </template>
+      <template #cell(altSpellings)="row">
+        {{ row.value[0]}}
+      </template>
+      <template #cell(callingCodes)="row">
+        {{ row.value[0]}}
+      </template>
+
+    </b-table>
+
+    <b-row>
+    <b-col sm="7" md="6" class="my-1">
+      <b-pagination
+              v-model="currentPage"
+              :total-rows="totalRows"
+              :per-page="perPage"
+              align="fill"
+              size="sm"
+              class="my-0"
+      ></b-pagination>
+    </b-col>
+    </b-row>
+    <!-- Info modal -->
+    <b-modal :id="infoModal.id" :title="infoModal.title" ok-only @hide="resetInfoModal">
+      <pre>{{ infoModal.content }}</pre>
+    </b-modal>
+  </b-container>
+</div>
+
+
+</body>
+<script>
+
+  const requestOptions = {
+    method: 'GET',
+    redirect: 'follow'
+  };
+
+  fetch("https://restcountries.eu/rest/v2/all", requestOptions)
+          .then(response => response.text())
+          .then((result)=>{
+            window.app = new Vue({
+              el: '#app',
+              data: {
+
+                items: [],
+                fields: [
+                  { key: 'flag', label: '國旗' },
+                  { key: 'name', label: '國家名稱', sortable: true, sortDirection: 'desc' },
+                  { key: 'alpha2Code', label: '2位國家代碼', class: 'text-center' },
+                  { key: 'alpha3Code', label: '3位國家代碼', class: 'text-center' },
+                  { key: 'nativeName', label: '母語名稱', class: 'text-center' },
+                  { key: 'altSpellings', label: '替代國家名稱', class: 'text-center' },
+                  { key: 'callingCodes', label: '國際電話區號', class: 'text-center' }
+
+                ],
+                totalRows: 1,
+                currentPage: 1,
+                perPage: 25,
+                sortBy: '',
+                sortDesc: false,
+                sortDirection: 'asc',
+                filter: null,
+                filterOn: [],
+                infoModal: {
+                  id: 'info-modal',
+                  title: '',
+                  content: ''
+                }
+
+              },
+              computed: {
+              },
+              mounted() {
+
+              },
+              methods: {
+                info(item, index, button) {
+                  this.infoModal.title = `國家名稱: ${item.name}`
+                  this.infoModal.content = JSON.stringify(item, null, 2)
+                  this.$root.$emit('bv::show::modal', this.infoModal.id, button)
+                },
+                resetInfoModal() {
+                  this.infoModal.title = ''
+                  this.infoModal.content = ''
+                }
+                ,
+                onFiltered(filteredItems) {
+                  this.currentPage = 1
+                }
+              }
+            })
+
+            const raw = JSON.parse(result);
+            window.app.items =raw;
+            window.app.totalRows=raw.length;
+
+
+
+          })
+          .catch(error => console.log('error', error));
+</script>
+</html>
